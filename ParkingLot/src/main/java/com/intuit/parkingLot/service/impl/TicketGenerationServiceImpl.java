@@ -4,6 +4,7 @@ import com.intuit.parkingLot.dto.enums.TicketStatus;
 import com.intuit.parkingLot.dto.enums.VehicleType;
 import com.intuit.parkingLot.dto.response.ParkingAmountResponse;
 import com.intuit.parkingLot.dto.response.ParkingTicket;
+import com.intuit.parkingLot.entities.ParkingLotEntity;
 import com.intuit.parkingLot.entities.ParkingTicketEntity;
 import com.intuit.parkingLot.repo.nativeRepo.ParkingTicketRepo;
 import com.intuit.parkingLot.repo.nativeRepo.PricingEntityRepo;
@@ -30,7 +31,7 @@ public class TicketGenerationServiceImpl implements TicketGenerationService {
     protected PricingEntityRepo pricingEntityRepo;
 
     @Override
-    public ParkingTicket generateParkingTicket(List<Long> spotIds, VehicleType vehicleType, String vehicleRegNo) {
+    public ParkingTicket generateParkingTicket(List<Long> spotIds, VehicleType vehicleType, String vehicleRegNo, ParkingLotEntity parkingLotEntity) {
         logger.info("Generating parking ticket");
         StringBuilder builder = new StringBuilder().append(spotIds.get(0));
         spotIds.remove(0);
@@ -43,6 +44,7 @@ public class TicketGenerationServiceImpl implements TicketGenerationService {
                 .vehicleRegNo(vehicleRegNo)
                 .ticketStatus(TicketStatus.ACTIVE.toString())
                 .entryTime(new Date())
+                .parkingLotTicketEntityFK(parkingLotEntity)
                 .build();
 
         parkingTicketRepo.save(parkingTicketEntity);
@@ -54,19 +56,25 @@ public class TicketGenerationServiceImpl implements TicketGenerationService {
 
     @Override
     public ParkingAmountResponse generatePaymentResponse(ParkingTicketEntity parkingTicketEntity) {
-        Date entryTime = parkingTicketEntity.getEntryTime();
-        Date currentTime = new Date();
-
-        long duration = currentTime.getTime() - entryTime.getTime();
+        parkingTicketEntity = parkingTicketRepo.getById(parkingTicketEntity.getTicketId());
+        long duration = parkingTicketEntity.getExitTime().getTime() - parkingTicketEntity.getEntryTime().getTime();
         long durationInHours = TimeUnit.MILLISECONDS.toHours(duration);
         durationInHours += (TimeUnit.MILLISECONDS.toMinutes(duration) > 0) ? 1 : (TimeUnit.MILLISECONDS.toSeconds(duration)>0 ? 1 : 0);
 
-        Double pricePerHour = pricingEntityRepo.findPerHourPriceForVehicleType(parkingTicketEntity.getVehicleType());
+        return ParkingAmountResponse.builder()
+                .amount(parkingTicketEntity.getAmount())
+                .hours((int)durationInHours)
+                .build();
+    }
 
-        Double totalAmount = pricePerHour * durationInHours;
+    @Override
+    public ParkingAmountResponse generatePaymentResponse1(Date entryTime, Date exitTime, Double amountPerHour) {
+        long duration = exitTime.getTime() - entryTime.getTime();
+        long durationInHours = TimeUnit.MILLISECONDS.toHours(duration);
+        durationInHours += (TimeUnit.MILLISECONDS.toMinutes(duration) > 0) ? 1 : (TimeUnit.MILLISECONDS.toSeconds(duration)>0 ? 1 : 0);
 
         return ParkingAmountResponse.builder()
-                .amount(totalAmount)
+                .amount(amountPerHour * durationInHours)
                 .hours((int)durationInHours)
                 .build();
     }

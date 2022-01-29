@@ -19,14 +19,16 @@ public class AdminController extends BaseController {
     private AdminService adminService;
 
     @PostMapping("/createParkingLot")
-    public Object createParkingLot() {
-        adminService.createParkingLot();
+    public Object createParkingLot(@RequestParam String location,
+                                   @RequestParam Integer minLevel,
+                                   @RequestParam Integer maxLevel) {
+        adminService.createParkingLot(location, minLevel, maxLevel);
         return BaseResponse.buildSuccess("parking lot created");
     }
 
     @PostMapping("/addNewSlot")
     public Object addNewSlot(@RequestBody ParkingSpotObject parkingSpotObject,
-                           @RequestParam Long parkingLotId) throws ParkingLotDoesNotExistException, ParkingSpotAlreadyExistsException {
+                           @RequestParam Long parkingLotId) throws ParkingLotDoesNotExistException, ParkingSpotAlreadyExistsException, InvalidParkingSpotException {
         adminService.addNewSpot(parkingSpotObject, parkingLotId);
         return BaseResponse.buildSuccess("parking spot created");
     }
@@ -40,9 +42,15 @@ public class AdminController extends BaseController {
 
     @PostMapping("/addPriceForVehicle")
     public Object addNewSlot(@RequestParam VehicleType vehicleType,
-                           @RequestParam Double price) {
-        adminService.addPriceForVehicleType(vehicleType, price);
+                            @RequestParam Double price,
+                            @RequestParam Long parkingLotId) throws ParkingLotDoesNotExistException {
+        adminService.addPriceForVehicleType(vehicleType, price, parkingLotId);
         return BaseResponse.buildSuccess("Parking Price added for vehicle");
+    }
+
+    @GetMapping("/getParkingPlan")
+    public Object getParkingPlan(@RequestParam Long parkingLotId) {
+        return BaseResponse.buildSuccess("parking plan query successful", adminService.getAllParkingSpots(parkingLotId));
     }
 
 }

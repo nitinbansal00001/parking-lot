@@ -17,4 +17,7 @@ public class PricingEntity {
 
     @Column(name= "amount_charged_per_hour")
     private Double amountChangedPerHour;
+
+    @ManyToOne(targetEntity = ParkingLotEntity.class)
+    private ParkingLotEntity parkingLotPricingEntityFK;
 }

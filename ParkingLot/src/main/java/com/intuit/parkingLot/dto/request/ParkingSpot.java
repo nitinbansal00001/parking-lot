@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.persistence.Column;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -15,4 +17,6 @@ public class ParkingSpot {
     private Integer level;
     private Integer row;
     private Integer col;
+    private Boolean empty;
+    private Boolean operational;
 }

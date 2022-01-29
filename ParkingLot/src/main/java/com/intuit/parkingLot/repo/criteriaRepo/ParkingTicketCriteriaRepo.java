@@ -34,7 +34,7 @@ public class ParkingTicketCriteriaRepo {
     protected PricingEntityRepo pricingEntityRepo;
 
     @Transactional
-    public ParkingTicketEntity getByTicketId(Long ticketId) {
+    public List<ParkingTicketEntity> getByTicketId(Long ticketId) {
         CriteriaBuilder builder = entityManager.getCriteriaBuilder();
         CriteriaQuery<ParkingTicketEntity> query = builder.createQuery(ParkingTicketEntity.class);
         Root<ParkingTicketEntity> from = query.from(ParkingTicketEntity.class);
@@ -42,7 +42,9 @@ public class ParkingTicketCriteriaRepo {
         Predicate p1 = builder.equal(from.get("ticketId"), ticketId);
         query.where(p1);
 
-        return entityManager.createQuery(query).getResultList().get(0);
+        List<ParkingTicketEntity> parkingTicketEntityList = entityManager.createQuery(query).getResultList();
+
+        return parkingTicketEntityList;
     }
 
     @Transactional
@@ -59,14 +61,14 @@ public class ParkingTicketCriteriaRepo {
     }
 
     @Transactional
-    public void markTicketPaidAndMakeSpotsFree(ParkingTicketEntity parkingTicketEntity) throws InvalidParkingTicketException {
+    public void markTicketPaidAndMakeSpotsFree(ParkingTicketEntity parkingTicketEntity, Double pricePerHour, Date exitTime) throws InvalidParkingTicketException {
 
         CriteriaBuilder builder = entityManager.getCriteriaBuilder();
         CriteriaUpdate<ParkingTicketEntity> update = builder.createCriteriaUpdate(ParkingTicketEntity.class);
         Root<ParkingTicketEntity> root = update.from(ParkingTicketEntity.class);
 
-        Date exitTime = new Date();
-        Double pricePerHour = pricingEntityRepo.findPerHourPriceForVehicleType(parkingTicketEntity.getVehicleType());
+//        Date exitTime = new Date();
+//        Double pricePerHour = pricingEntityRepo.findPerHourPriceForVehicleType(parkingTicketEntity.getVehicleType(), parkingTicketEntity.getParkingLotTicketEntityFK().getParkingLotId());
         Double amount = CommonUtils.calculateAmount(pricePerHour, parkingTicketEntity.getEntryTime(), exitTime);
         update.set("ticketStatus", TicketStatus.PAID.toString())
                 .set("amount", amount)

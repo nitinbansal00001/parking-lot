@@ -11,7 +11,8 @@ import javax.persistence.*;
         indexes = {
                 @Index(columnList = "is_empty"),
                 @Index(columnList = "operational"),
-                @Index(columnList = "spot_type")
+                @Index(columnList = "spot_type"),
+                @Index(columnList = "level")
         }
 )
 public class ParkingSpotEntity {

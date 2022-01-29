@@ -27,4 +27,10 @@ public class ParkingLotEntity {
 
     @OneToMany(mappedBy = "parkingLotFK")
     private Set<ParkingSpotEntity> spotEntities;
+
+    @OneToMany(mappedBy = "parkingLotPricingEntityFK")
+    private Set<PricingEntity> pricingEntities;
+
+    @OneToMany(mappedBy = "parkingLotTicketEntityFK")
+    private Set<ParkingTicketEntity> parkingTicketEntities;
 }

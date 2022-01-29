@@ -3,6 +3,7 @@ package com.intuit.parkingLot.repo.criteriaRepo;
 import com.intuit.parkingLot.dto.enums.SpotType;
 import com.intuit.parkingLot.dto.enums.VehicleType;
 import com.intuit.parkingLot.dto.response.ParkingTicket;
+import com.intuit.parkingLot.entities.ParkingLotEntity;
 import com.intuit.parkingLot.entities.ParkingSpotEntity;
 import com.intuit.parkingLot.service.TicketGenerationService;
 import org.apache.logging.log4j.LogManager;
@@ -64,7 +65,7 @@ public class ParkingSpotCriteriaRepo {
     }
 
     @Transactional
-    public ParkingTicket updateSpotAndGetTicket(List<Long> spotIds, VehicleType vehicleType, String vehicleRegNo) {
+    public ParkingTicket updateSpotAndGetTicket(List<Long> spotIds, VehicleType vehicleType, String vehicleRegNo, ParkingLotEntity parkingLotEntity) {
 
         CriteriaBuilder builder = entityManager.getCriteriaBuilder();
         CriteriaUpdate<ParkingSpotEntity> update = builder.createCriteriaUpdate(ParkingSpotEntity.class);
@@ -84,7 +85,7 @@ public class ParkingSpotCriteriaRepo {
             logger.info("Result of updateSpotIfOperationalAndFree {}, spotId {}", updateResult, spotId);
         }
 
-        return ticketGenerationService.generateParkingTicket(spotIds, vehicleType, vehicleRegNo);
+        return ticketGenerationService.generateParkingTicket(spotIds, vehicleType, vehicleRegNo, parkingLotEntity);
     }
 
     @Transactional

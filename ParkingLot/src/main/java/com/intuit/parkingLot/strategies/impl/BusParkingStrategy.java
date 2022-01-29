@@ -13,6 +13,7 @@ import com.intuit.parkingLot.repo.criteriaRepo.ParkingSpotCriteriaRepo;
 import com.intuit.parkingLot.repo.criteriaRepo.ParkingTicketCriteriaRepo;
 import com.intuit.parkingLot.repo.nativeRepo.ParkingLotRepo;
 import com.intuit.parkingLot.repo.nativeRepo.ParkingSpotRepo;
+import com.intuit.parkingLot.repo.nativeRepo.PricingEntityRepo;
 import com.intuit.parkingLot.service.ParkingValidationService;
 import com.intuit.parkingLot.service.TicketGenerationService;
 import com.intuit.parkingLot.strategies.ParkingStrategy;
@@ -22,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -47,6 +49,9 @@ public class BusParkingStrategy implements ParkingStrategy {
 
     @Autowired
     protected ParkingTicketCriteriaRepo parkingTicketCriteriaRepo;
+
+    @Autowired
+    protected PricingEntityRepo pricingEntityRepo;
 
     @Override
     public ParkingTicket reserveSpotForVehicle(String vehicleRegNo, Long parkingLotId) throws ParkingLotDoesNotExistException {
@@ -82,7 +87,7 @@ public class BusParkingStrategy implements ParkingStrategy {
         }
         logger.info("Parking Spots found for BUS, number of spots are : {}", foundEmptySpotsForBus.size());
 
-        parkingTicket = finaliseReservation(foundEmptySpotsForBus, vehicleRegNo);
+        parkingTicket = finaliseReservation(foundEmptySpotsForBus, vehicleRegNo, parkingLotEntity);
 
         logger.info("Parking ticket is : {}", parkingTicket.toString());
 
@@ -91,14 +96,19 @@ public class BusParkingStrategy implements ParkingStrategy {
 
     @Override
     public ParkingAmountResponse releaseSpot(ParkingTicketEntity parkingTicketEntity) throws InvalidParkingTicketException {
-        parkingTicketCriteriaRepo.markTicketPaidAndMakeSpotsFree(parkingTicketEntity);
-        return ticketGenerationService.generatePaymentResponse(parkingTicketEntity);
+        Double amountPerHour = pricingEntityRepo.findPerHourPriceForVehicleType(parkingTicketEntity.getVehicleType(), parkingTicketEntity.getParkingLotTicketEntityFK().getParkingLotId());
+        Date exitTime = new Date();
+        parkingTicketCriteriaRepo.markTicketPaidAndMakeSpotsFree(parkingTicketEntity, amountPerHour, exitTime);
+//        logger.info("updated ticket : {}", parkingTicketEntity);
+//        ParkingTicketEntity updatedParkingTicketEntity = parkingTicketRepo.getById(parkingTicketEntity.getTicketId());
+//        logger.info("amount : {}, exit time : {}", updatedParkingTicketEntity.getAmount(), updatedParkingTicketEntity.getExitTime());
+        return ticketGenerationService.generatePaymentResponse1(parkingTicketEntity.getEntryTime(), exitTime, amountPerHour);
     }
 
-    public ParkingTicket finaliseReservation(List<ParkingSpotEntity> spotEntities, String vehicleRegNo) {
+    public ParkingTicket finaliseReservation(List<ParkingSpotEntity> spotEntities, String vehicleRegNo, ParkingLotEntity parkingLotEntity) {
         logger.info("finalising reservation");
         List<Long> spotIds = spotEntities.stream().map(s -> s.getId()).collect(Collectors.toList());
-        ParkingTicket parkingTicket = parkingSpotCriteriaRepo.updateSpotAndGetTicket(spotIds, VehicleType.BUS, vehicleRegNo);
+        ParkingTicket parkingTicket = parkingSpotCriteriaRepo.updateSpotAndGetTicket(spotIds, VehicleType.BUS, vehicleRegNo, parkingLotEntity);
         return parkingTicket;
     }
 

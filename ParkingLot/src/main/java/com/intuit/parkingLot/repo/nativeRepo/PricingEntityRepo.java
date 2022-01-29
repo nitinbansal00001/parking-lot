@@ -6,6 +6,6 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface PricingEntityRepo extends JpaRepository<PricingEntity, Long> {
 
-    @Query("select p.amountChangedPerHour from PricingEntity p where p.vehicleType = :vehicleType")
-    public Double findPerHourPriceForVehicleType(String vehicleType);
+    @Query("select p.amountChangedPerHour from PricingEntity p where p.vehicleType = :vehicleType and p.parkingLotPricingEntityFK.parkingLotId= :parkingLotId")
+    public Double findPerHourPriceForVehicleType(String vehicleType, Long parkingLotId);
 }

@@ -7,11 +7,14 @@ import com.intuit.parkingLot.dto.response.ParkingTicket;
 import com.intuit.parkingLot.entities.ParkingLotEntity;
 import com.intuit.parkingLot.entities.ParkingSpotEntity;
 import com.intuit.parkingLot.entities.ParkingTicketEntity;
+import com.intuit.parkingLot.entities.PricingEntity;
 import com.intuit.parkingLot.exceptions.InvalidParkingTicketException;
 import com.intuit.parkingLot.exceptions.ParkingLotDoesNotExistException;
 import com.intuit.parkingLot.repo.criteriaRepo.ParkingSpotCriteriaRepo;
 import com.intuit.parkingLot.repo.criteriaRepo.ParkingTicketCriteriaRepo;
 import com.intuit.parkingLot.repo.nativeRepo.ParkingLotRepo;
+import com.intuit.parkingLot.repo.nativeRepo.ParkingTicketRepo;
+import com.intuit.parkingLot.repo.nativeRepo.PricingEntityRepo;
 import com.intuit.parkingLot.service.ParkingValidationService;
 import com.intuit.parkingLot.service.TicketGenerationService;
 import com.intuit.parkingLot.strategies.ParkingStrategy;
@@ -21,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -39,10 +43,16 @@ public class BikeParkingStrategy implements ParkingStrategy {
     protected ParkingValidationService parkingValidationService;
 
     @Autowired
+    protected ParkingTicketRepo parkingTicketRepo;
+
+    @Autowired
     protected ParkingTicketCriteriaRepo parkingTicketCriteriaRepo;
 
     @Autowired
     protected TicketGenerationService ticketGenerationService;
+
+    @Autowired
+    protected PricingEntityRepo pricingEntityRepo;
 
     @Override
     public ParkingTicket reserveSpotForVehicle(String vehicleRegNo, Long parkingLotId) throws ParkingLotDoesNotExistException {
@@ -74,7 +84,7 @@ public class BikeParkingStrategy implements ParkingStrategy {
 
         logger.info("Parking Spot found : {}", parkingSpotEntity.toString());
 
-        parkingTicket = finaliseReservation(Arrays.asList(parkingSpotEntity), vehicleRegNo);
+        parkingTicket = finaliseReservation(Arrays.asList(parkingSpotEntity), vehicleRegNo, parkingLotEntity);
 
         logger.info("Parking ticket is : {}", parkingTicket.toString());
 
@@ -83,14 +93,19 @@ public class BikeParkingStrategy implements ParkingStrategy {
 
     @Override
     public ParkingAmountResponse releaseSpot(ParkingTicketEntity parkingTicketEntity) throws InvalidParkingTicketException {
-        parkingTicketCriteriaRepo.markTicketPaidAndMakeSpotsFree(parkingTicketEntity);
-        return ticketGenerationService.generatePaymentResponse(parkingTicketEntity);
+        Double amountPerHour = pricingEntityRepo.findPerHourPriceForVehicleType(parkingTicketEntity.getVehicleType(), parkingTicketEntity.getParkingLotTicketEntityFK().getParkingLotId());
+        Date exitTime = new Date();
+        parkingTicketCriteriaRepo.markTicketPaidAndMakeSpotsFree(parkingTicketEntity, amountPerHour, exitTime);
+//        logger.info("updated ticket : {}", parkingTicketEntity);
+//        ParkingTicketEntity updatedParkingTicketEntity = parkingTicketRepo.getById(parkingTicketEntity.getTicketId());
+//        logger.info("amount : {}, exit time : {}", updatedParkingTicketEntity.getAmount(), updatedParkingTicketEntity.getExitTime());
+        return ticketGenerationService.generatePaymentResponse1(parkingTicketEntity.getEntryTime(), exitTime, amountPerHour);
     }
 
-    public ParkingTicket finaliseReservation(List<ParkingSpotEntity> spotEntities, String vehicleRegNo) {
+    public ParkingTicket finaliseReservation(List<ParkingSpotEntity> spotEntities, String vehicleRegNo, ParkingLotEntity parkingLotEntity) {
         logger.info("finalising reservation");
         List<Long> spotIds = spotEntities.stream().map(s -> s.getId()).collect(Collectors.toList());
-        ParkingTicket parkingTicket = parkingSpotCriteriaRepo.updateSpotAndGetTicket(spotIds, VehicleType.BIKE, vehicleRegNo);
+        ParkingTicket parkingTicket = parkingSpotCriteriaRepo.updateSpotAndGetTicket(spotIds, VehicleType.BIKE, vehicleRegNo, parkingLotEntity);
         return parkingTicket;
     }
 }

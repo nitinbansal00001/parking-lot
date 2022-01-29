@@ -1,14 +1,11 @@
 package com.intuit.parkingLot.entities;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
 import java.util.Date;
 
-@Entity @Data @Builder @NoArgsConstructor @AllArgsConstructor
+@Entity @Builder @NoArgsConstructor @AllArgsConstructor @Getter @Setter
 @Table(
         indexes = {
                 @Index(columnList = "vehicle_reg_no"),
@@ -44,4 +41,7 @@ public class ParkingTicketEntity {
 
     @Column(name = "amount")
     private Double amount;
+
+    @ManyToOne(targetEntity = ParkingLotEntity.class)
+    private ParkingLotEntity parkingLotTicketEntityFK;
 }

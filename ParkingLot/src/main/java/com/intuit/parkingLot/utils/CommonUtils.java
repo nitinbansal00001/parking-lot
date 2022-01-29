@@ -1,5 +1,6 @@
 package com.intuit.parkingLot.utils;
 
+import com.intuit.parkingLot.dto.enums.SpotType;
 import com.intuit.parkingLot.dto.response.ParkingTicket;
 import com.intuit.parkingLot.entities.ParkingLotEntity;
 import com.intuit.parkingLot.entities.ParkingSpotEntity;
@@ -51,5 +52,18 @@ public class CommonUtils {
         durationInHours += (TimeUnit.MILLISECONDS.toMinutes(duration) > 0) ? 1 : (TimeUnit.MILLISECONDS.toSeconds(duration)>0 ? 1 : 0);
 
         return durationInHours*pricePerHour;
+    }
+
+    public static ParkingSpot createParkingSpotFromParkingSpotEntity(ParkingSpotEntity parkingSpotEntity) {
+        ParkingSpot parkingSpot = ParkingSpot.builder()
+                .spotType(SpotType.getSpotTypeFromString(parkingSpotEntity.getSpotType()))
+                .level(parkingSpotEntity.getLevel())
+                .row(parkingSpotEntity.getLineNumber())
+                .col(parkingSpotEntity.getPosition())
+                .empty(parkingSpotEntity.getEmpty())
+                .operational(parkingSpotEntity.getOperational())
+                .build();
+
+        return parkingSpot;
     }
 }
