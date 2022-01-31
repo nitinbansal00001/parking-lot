@@ -27,11 +27,11 @@ public class ParkingController extends BaseController {
     public Object parkVehicle(@RequestParam VehicleType vehicleType,
                               @RequestParam String registrationNumber,
                               @RequestParam Long parkingLotId) throws NoParkingSpotAvailableException, ParkingLotDoesNotExistException {
-        return BaseResponse.buildSuccess(parkingLotService.parkVehicle(vehicleType, registrationNumber, parkingLotId));
+        return BaseResponse.buildSuccess("Vehicle Parking successful" ,parkingLotService.parkVehicle(vehicleType, registrationNumber, parkingLotId));
     }
 
     @PostMapping("/releaseVehicle")
     public Object releaseVehicle(@RequestParam String ticketId) throws InvalidParkingTicketException {
-        return BaseResponse.buildSuccess(parkingLotService.releaseVehicle(ticketId));
+        return BaseResponse.buildSuccess("Vehicle release successful", parkingLotService.releaseVehicle(ticketId));
     }
 }

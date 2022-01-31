@@ -49,7 +49,7 @@ public class AdminServiceImpl implements AdminService {
     protected ParkingLotCriteriaRepo parkingLotCriteriaRepo;
 
     @Override
-    public void createParkingLot(String location, Integer minLevel, Integer maxLevel) {
+    public Long createParkingLot(String location, Integer minLevel, Integer maxLevel) {
         ParkingLotEntity parkingLotEntity = ParkingLotEntity.builder()
                 .location(location)
                 .minFloor(minLevel)
@@ -58,6 +58,7 @@ public class AdminServiceImpl implements AdminService {
 
         parkingLotRepo.save(parkingLotEntity);
         logger.info("Parking Lot created successfuly");
+        return parkingLotEntity.getParkingLotId();
     }
 
     @Override
@@ -113,8 +114,8 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public void modifyAvailabilityOfSpot(Long spotId, Boolean operational) throws  ParkingLotException {
-        int result = parkingSpotCriteriaRepo.changeSpotAvailability(spotId, operational);
+    public void modifyAvailabilityOfSpot(Integer level, Integer row, Integer col, Boolean operational) throws  ParkingLotException {
+        int result = parkingSpotCriteriaRepo.changeSpotAvailability(level, row, col, operational);
         if (result != 1) {
             logger.info("Could not change spot availability");
             throw new ParkingLotException("Could not change spot availability");

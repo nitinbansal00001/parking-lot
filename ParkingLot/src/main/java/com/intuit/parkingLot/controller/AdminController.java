@@ -22,8 +22,7 @@ public class AdminController extends BaseController {
     public Object createParkingLot(@RequestParam String location,
                                    @RequestParam Integer minLevel,
                                    @RequestParam Integer maxLevel) {
-        adminService.createParkingLot(location, minLevel, maxLevel);
-        return BaseResponse.buildSuccess("parking lot created");
+        return BaseResponse.buildSuccess("parking lot created with id " + adminService.createParkingLot(location, minLevel, maxLevel));
     }
 
     @PostMapping("/addNewSlot")
@@ -34,14 +33,16 @@ public class AdminController extends BaseController {
     }
 
     @PostMapping("/modifySpot")
-    public Object modifySpotAvailability(@RequestParam Long spotId,
+    public Object modifySpotAvailability(@RequestParam Integer level,
+                                         @RequestParam Integer row,
+                                         @RequestParam Integer col,
                                          @RequestParam Boolean operational) throws InvalidParkingSpotException, ParkingLotException {
-        adminService.modifyAvailabilityOfSpot(spotId, operational);
-        return BaseResponse.buildSuccess("parking spot created");
+        adminService.modifyAvailabilityOfSpot(level, row, col, operational);
+        return BaseResponse.buildSuccess("parking spot updated");
     }
 
     @PostMapping("/addPriceForVehicle")
-    public Object addNewSlot(@RequestParam VehicleType vehicleType,
+    public Object addPriceForVehicleType(@RequestParam VehicleType vehicleType,
                             @RequestParam Double price,
                             @RequestParam Long parkingLotId) throws ParkingLotDoesNotExistException {
         adminService.addPriceForVehicleType(vehicleType, price, parkingLotId);

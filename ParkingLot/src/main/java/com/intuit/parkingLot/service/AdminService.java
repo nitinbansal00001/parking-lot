@@ -12,9 +12,10 @@ import com.intuit.parkingLot.exceptions.ParkingSpotAlreadyExistsException;
 import java.util.List;
 
 public interface AdminService {
-    void createParkingLot(String location, Integer minLevel, Integer maxLevel);
+    Long createParkingLot(String location, Integer minLevel, Integer maxLevel);
     void addNewSpot(ParkingSpotObject parkingSpotObject, Long parkingLotId) throws ParkingLotDoesNotExistException, ParkingSpotAlreadyExistsException, InvalidParkingSpotException;
     void addPriceForVehicleType(VehicleType vehicleType, Double price, Long parkingLotId) throws ParkingLotDoesNotExistException;
-    void modifyAvailabilityOfSpot(Long spotId, Boolean operational) throws InvalidParkingSpotException, ParkingLotException;
     List<ParkingSpot> getAllParkingSpots(Long parkingLotId);
+
+    void modifyAvailabilityOfSpot(Integer level, Integer row, Integer col, Boolean operational) throws InvalidParkingSpotException, ParkingLotException;
 }

@@ -109,15 +109,17 @@ public class ParkingSpotCriteriaRepo {
     }
 
     @Transactional
-    public int changeSpotAvailability(Long spotId, Boolean operational) {
+    public int changeSpotAvailability(Integer level, Integer row, Integer col, Boolean operational) {
         CriteriaBuilder builder = entityManager.getCriteriaBuilder();
         CriteriaUpdate<ParkingSpotEntity> update = builder.createCriteriaUpdate(ParkingSpotEntity.class);
         Root<ParkingSpotEntity> from = update.from(ParkingSpotEntity.class);
 
         update.set("operational", operational);
         Predicate p1 = builder.equal(from.get("empty"), Boolean.TRUE);
-        Predicate p2 = builder.equal(from.get("id"), spotId);
-        update.where(p1, p2);
+        Predicate p2 = builder.equal(from.get("level"), level);
+        Predicate p3 = builder.equal(from.get("lineNumber"), row);
+        Predicate p4 = builder.equal(from.get("position"), col);
+        update.where(p1, p2, p3, p4);
         int result = entityManager.createQuery(update).executeUpdate();
         logger.info("Result of changeSpotAvailability is : {}", result);
 
